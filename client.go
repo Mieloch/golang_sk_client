@@ -116,7 +116,11 @@ func scanUsages(g *gocui.Gui){
 					v.Clear()
 					for _, remote := range remotes{
 					usage := getRemoteMachineCpuUsage(remote)
-						fmt.Fprint(v, remote +" CPU Usage=", usage, "%")
+						if usage == -1{
+							fmt.Fprint(v, remote +" Unable to reach server!")
+						}else{
+							fmt.Fprint(v, remote +" CPU Usage=", usage, "%")
+						}					
 					}
 					
 					return nil
@@ -127,7 +131,7 @@ func scanUsages(g *gocui.Gui){
 }
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("main", -1, -1, 30, maxY); err != nil {
+	if v, err := g.SetView("main", -1, -1, 40, maxY); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -142,7 +146,7 @@ func layout(g *gocui.Gui) error {
 		}
 		
 	}
-	if v, err := g.SetView("script", 30, -1, maxX, maxY); err != nil {
+	if v, err := g.SetView("script", 40, -1, maxX, maxY); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}

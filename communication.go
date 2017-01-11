@@ -19,19 +19,20 @@ func createRequest(code int32, payload string) []byte{
 		binary.Write(byteBuffer, binary.BigEndian, &request)
 		return byteBuffer.Bytes()
 }
-func getRemoteMachineCpuUsage(hostPort string) uint64{
+func getRemoteMachineCpuUsage(hostPort string) (ret int32){
 		conn, err := net.Dial("tcp", hostPort)
 		if err != nil {
-			return 0
+			return -1
 		}
 		var request = createRequest(0, "")
 		conn.Write(request)
 		buffer := make([]byte, 8)
 		conn.Read(buffer)
 		buf2 := bytes.NewBuffer(buffer)
-    		data,_ := binary.ReadUvarint(buf2)
+		binary.Read(buf2, binary.LittleEndian, &ret)
+    		//data,_ := binary.ReadVarint(buf2)
 		conn.Close()
-		return data
+		return
 }
 func sendScriptToRemote(hostPort string, script string) string{
 		conn, err := net.Dial("tcp", hostPort)
