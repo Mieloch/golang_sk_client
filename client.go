@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 	"github.com/jroimartin/gocui"
+
 )
 func cursorDown(g *gocui.Gui, v *gocui.View) error {
 	if v != nil {
@@ -20,7 +21,16 @@ func cursorDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 func sendScript(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
+	scriptView, err := g.View("script");
+	if(err != nil){
+	return err
+	}
+
+	content := scriptView.ViewBuffer()
+	output := sendScriptToRemote("localhost:1234",content)
+	scriptView.Clear()
+	fmt.Fprintf(scriptView,output)
+	return nil
 }
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
 	if v != nil {
