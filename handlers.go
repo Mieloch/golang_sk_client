@@ -14,10 +14,14 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("main", gocui.KeyEnter, gocui.ModNone, sendScript); err != nil {
 		return err
 	}
+
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("msg", gocui.KeyEnter, gocui.ModNone, loadScript); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("msg", gocui.KeySpace, gocui.ModNone, closeMsg); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("script", gocui.KeyEnter, gocui.ModNone, getScriptName); err != nil {

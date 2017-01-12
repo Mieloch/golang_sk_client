@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 	"github.com/jroimartin/gocui"
+	"regexp"
 
 )
 func cursorDown(g *gocui.Gui, v *gocui.View) error {
@@ -21,15 +22,27 @@ func cursorDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 func sendScript(g *gocui.Gui, v *gocui.View) error {
+	var l string
 	scriptView, err := g.View("script");
 	if(err != nil){
 	return err
 	}
 
-	content := scriptView.ViewBuffer()
-	output := sendScriptToRemote("localhost:1234",content)
-	scriptView.Clear()
-	fmt.Fprintf(scriptView,output)
+	_, cy := v.Cursor()
+	l, err = v.Line(cy)
+	if err != nil{
+		l = ""
+	}
+	var isValidHostPort = regexp.MustCompile(`(\w|\d)*[:]\d*`)
+
+	if isValidHostPort.MatchString(l){
+		hostPort := isValidHostPort.FindString(l)
+		content := scriptView.ViewBuffer()
+		output := sendScriptToRemote(hostPort,content)
+		scriptView.Clear()
+		fmt.Fprintf(scriptView,output)
+	}
+	
 	return nil
 }
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
@@ -66,7 +79,7 @@ func loadScript(g *gocui.Gui, v *gocui.View) error {
 	_, cy := v.Cursor()
 	l, err = v.Line(cy)
 	if err != nil{
-		l = ""
+		return nil
 	}
 	var scriptView *gocui.View
 	scriptView, _ = g.View("script")
@@ -89,7 +102,15 @@ func loadScript(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-
+func closeMsg(g *gocui.Gui, v *gocui.View) error {
+	if err := g.DeleteView("msg"); err != nil {
+		return err
+	}
+	if _, err := g.SetCurrentView("script"); err != nil {
+		return err
+	}
+	return nil
+}
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
