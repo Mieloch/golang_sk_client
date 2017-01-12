@@ -9,9 +9,9 @@ sudo apt-get install golang
 
  - tworzy root dla GO workspace
 
-export GOROOT=$HOME/{go_workspace}
+export GOPATH=$HOME/{workspace}
 
-export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOPATH/bin
 
 
  - pobiera biblioteke UI potrzebna do zbudowania
