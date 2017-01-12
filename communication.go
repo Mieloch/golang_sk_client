@@ -3,9 +3,6 @@ import (
 	"net"
 	"encoding/binary"
 	"bytes"
-
-
-
 )
 type Request struct{
 	code int32
@@ -34,15 +31,17 @@ func getRemoteMachineCpuUsage(hostPort string) (ret int32){
 		conn.Close()
 		return
 }
-func sendScriptToRemote(hostPort string, script string) string{
-		conn, err := net.Dial("tcp", hostPort)
+func sendScriptToRemote(node *Node, script string) string{
+		conn, err := net.Dial("tcp", node.hostPort)
 		if err != nil {
 			return "connection fail"
 		}
 		var request = createRequest(1, script)
 		conn.Write(request)
+		node.working = true
 		buffer := make([]byte, 1024)
 		n,err := conn.Read(buffer)
+		node.working = false
 		if err != nil {
 			return "fail"
 		}

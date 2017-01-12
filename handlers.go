@@ -14,6 +14,9 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("main", gocui.KeyEnter, gocui.ModNone, sendScript); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("main", gocui.KeyCtrlA, gocui.ModNone, sendScriptAutomatically); err != nil {
+		return err
+	}
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		return err
