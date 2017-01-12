@@ -7,7 +7,7 @@ import (
 	"time"
 	"github.com/jroimartin/gocui"
 	"regexp"
-	"sort"
+
 )
 func cursorDown(g *gocui.Gui, v *gocui.View) error {
 	if v != nil {
@@ -26,51 +26,31 @@ func sendScriptAutomatically(g *gocui.Gui, v *gocui.View) error {
 	if(err != nil){
 	return err
 	}
-
-
 		content := scriptView.ViewBuffer()
-			
-		var bestNode *Node
-		var i = 0
-		for _, node := range nodeList.nodes{
-			if(i==0){
-				bestNode = node
-			}
-			if(node.usage<bestNode.usage && node.working == false){
-				bestNode = node
-			}
-			i++
-		}
-		output := sendScriptToRemote(bestNode,content)
-		scriptView.Clear()
-		fmt.Fprint(scriptView, "Job sent to ", bestNode.hostPort, "\n" )
-		fmt.Fprint(scriptView,output)
-	
+		bestNode := findBestNode()
+		go sendScriptToRemote(bestNode,content)
 	return nil
 }
-func sendScript(g *gocui.Gui, v *gocui.View) error {
-	var l string
-	scriptView, err := g.View("script");
-	if(err != nil){
-	return err
-	}
-
+func getLine(v *gocui.View) string{
 	_, cy := v.Cursor()
-	l, err = v.Line(cy)
+	l, err := v.Line(cy)
 	if err != nil{
 		l = ""
 	}
+	return l
+}
+func sendScript(g *gocui.Gui, v *gocui.View) error {
+	scriptView, err := g.View("script");
+	if(err != nil){
+		return err
+	}
+	line := getLine(v)
 	var isValidHostPort = regexp.MustCompile(`(\w|\d)*[:]\d*`)
-
-	if isValidHostPort.MatchString(l){
-
-		hostPort := isValidHostPort.FindString(l)
+	if isValidHostPort.MatchString(line){
+		hostPort := isValidHostPort.FindString(line)
 		content := scriptView.ViewBuffer()
 		go sendScriptToRemote((nodeList.nodes[hostPort]),content)
-		//scriptView.Clear()
-		//fmt.Fprintf(scriptView,output)
 	}
-	
 	return nil
 }
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
@@ -86,15 +66,13 @@ func cursorUp(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 func getScriptName(g *gocui.Gui, v *gocui.View) error {
-
 	maxX, maxY := g.Size()
 	if v, err := g.SetView("msg", maxX/2-30, maxY/2, maxX/2+30, maxY/2+2); err != nil {
 		v.Editable = true
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		if _, err := g.SetCurrentView("msg"); err != nil {
-			
+		if _, err := g.SetCurrentView("msg"); err != nil {	
 			return err
 		}		
 	}
@@ -112,21 +90,12 @@ func loadScript(g *gocui.Gui, v *gocui.View) error {
 	var scriptView *gocui.View
 	scriptView, _ = g.View("script")
 	scriptView.Clear()	
-	b, err := ioutil.ReadFile(l[0:len(l)-1])
+	fileContent, err := ioutil.ReadFile(l[0:len(l)-1])
 	if err != nil{
 		fmt.Fprintf(scriptView, "%s", "Failed to load script! Check path and try again")
 	}
-	
-	fmt.Fprintf(scriptView, "%s", b)
-	if err := g.DeleteView("msg"); err != nil {
-		return err
-	}
-	if _, err := g.SetCurrentView("script"); err != nil {
-		return err
-	}
-	
-	
-
+	fmt.Fprintf(scriptView, "%s", fileContent)
+	closeMsg(g,v)
 	return nil
 }
 
@@ -150,39 +119,26 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 	_, err := g.SetCurrentView("script")
 	return err
 }
-
-
 func scanUsages(g *gocui.Gui){
 	for{
 		select{
 			case <-time.After(1000 * time.Millisecond):
-				    keys := make([]string, 0, len(nodeList.nodes))
-				    for k,_ := range nodeList.nodes {
-					keys = append(keys, k)
-				    }
-				sort.Strings(keys)
-				for _, k := range keys{
-					node := nodeList.nodes[k]
-					node.usage = getRemoteMachineCpuUsage(node.hostPort)
-				}
-				v, err := g.View("main")
+				nodesHostPorts := getNodeHostPorts()
+				updateNodeUsage(nodesHostPorts)
+				v, _ := g.View("main")
 				v.Clear()
 				g.Execute(func(g *gocui.Gui) error {
-						for _, k := range keys{
-							node := nodeList.nodes[k]
-						if err != nil {
-							// handle error
-						}
-						
+					for _, k := range nodesHostPorts{
+						node := nodeList.nodes[k]			
 						if node.usage == -1{
-							fmt.Fprintf(v, "\033[31;4m%d %s\033[0m\n",node.class, node.hostPort +" Unable to reach server!")
+				fmt.Fprintf(v, "\033[31;4m%d %s\033[0m\n",node.class, node.hostPort +" Unable to reach server!")
 						}else if(node.working){
 							fmt.Fprint(v,node.class," ", node.hostPort +" WORKING\n")
 						}else{
 							fmt.Fprint(v,node.class," ", node.hostPort +" CPU Usage=", node.usage, "%\n")
 						}					
-						}
-				return nil
+					}
+					return nil
 				})
 			}
 	}
@@ -208,14 +164,11 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		//b, err := ioutil.ReadFile("Mark.Twain-Tom.Sawyer.txt")
-
 		fmt.Fprintf(v, "%s", "[Enter] to load script")
 		v.Editable = false
 		v.Wrap = true
 		
 	}
-
 	return nil
 }
 
