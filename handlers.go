@@ -17,7 +17,15 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("main", gocui.KeyCtrlA, gocui.ModNone, sendScriptAutomatically); err != nil {
 		return err
 	}
-
+	if err := g.SetKeybinding("jobs", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("jobs", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("jobs", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		return err
 	}

@@ -116,8 +116,15 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 		_, err := g.SetCurrentView("main")
 		return err
 	}
-	_, err := g.SetCurrentView("script")
-	return err
+	if v.Name() == "main" {
+		_, err := g.SetCurrentView("jobs")
+		return err
+	}
+	if v.Name() == "jobs" {
+		_, err := g.SetCurrentView("script")
+		return err
+	}
+	return nil
 }
 func scanUsages(g *gocui.Gui){
 	for{
@@ -145,7 +152,7 @@ func scanUsages(g *gocui.Gui){
 }
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("main", -1, -1, 45, maxY); err != nil {
+	if v, err := g.SetView("main", -1, -1, 45, maxY/2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -165,6 +172,15 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		fmt.Fprintf(v, "%s", "[Enter] to load script")
+		v.Editable = false
+		v.Wrap = true
+		
+	}
+	if v, err := g.SetView("jobs", -1, maxY/2, 45, maxY); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		fmt.Fprintf(v, "%s", "jobs")
 		v.Editable = false
 		v.Wrap = true
 		
