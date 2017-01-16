@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"time"
+
 	"github.com/jroimartin/gocui"
 	"regexp"
 
@@ -28,7 +28,7 @@ func sendScriptAutomatically(g *gocui.Gui, v *gocui.View) error {
 	}
 		content := scriptView.ViewBuffer()
 		bestNode := findBestNode()
-		go sendScriptToRemote(bestNode,content)
+		go sendScriptToRemote(g, bestNode,content)
 	return nil
 }
 func getLine(v *gocui.View) string{
@@ -49,7 +49,7 @@ func sendScript(g *gocui.Gui, v *gocui.View) error {
 	if isValidHostPort.MatchString(line){
 		hostPort := isValidHostPort.FindString(line)
 		content := scriptView.ViewBuffer()
-		go sendScriptToRemote((nodeList.nodes[hostPort]),content)
+		go sendScriptToRemote(g, (nodeList.nodes[hostPort]),content)
 	}
 	return nil
 }
@@ -126,30 +126,7 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 	}
 	return nil
 }
-func scanUsages(g *gocui.Gui){
-	for{
-		select{
-			case <-time.After(1000 * time.Millisecond):
-				nodesHostPorts := getNodeHostPorts()
-				updateNodeUsage(nodesHostPorts)
-				v, _ := g.View("main")
-				v.Clear()
-				g.Execute(func(g *gocui.Gui) error {
-					for _, k := range nodesHostPorts{
-						node := nodeList.nodes[k]			
-						if node.usage == -1{
-				fmt.Fprintf(v, "\033[31;4m%d %s\033[0m\n",node.class, node.hostPort +" Unable to reach server!")
-						}else if(node.working){
-							fmt.Fprint(v,node.class," ", node.hostPort +" WORKING\n")
-						}else{
-							fmt.Fprint(v,node.class," ", node.hostPort +" CPU Usage=", node.usage, "%\n")
-						}					
-					}
-					return nil
-				})
-			}
-	}
-}
+
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if v, err := g.SetView("main", -1, -1, 45, maxY/2); err != nil {
