@@ -39,7 +39,8 @@ W folderze z binarka nalezy umiescic rowniez plik konfiguracyjny z adresami nod�
 
 tab - zmiana okna
 
-wybór noda
+wybór noda:
 
 reczny - enter na adresie serwera
+
 automatyczny - ctrl + a
