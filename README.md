@@ -27,4 +27,5 @@ mkdir $GOPATH/src/github.com/{user}/{project_name}
  
  
 cd  $GOPATH/src/github.com/{user}/{project_name}
+
 go install
