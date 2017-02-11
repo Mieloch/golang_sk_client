@@ -29,3 +29,17 @@ mkdir $GOPATH/src/github.com/{user}/{project_name}
 cd  $GOPATH/src/github.com/{user}/{project_name}
 
 go install
+
+
+- uruchomienie
+
+W folderze z binarka nalezy umiescic rowniez plik konfiguracyjny z adresami nodów. format pojedynczego wpisu(każdy od nowej lini): 1;host:port
+
+- sterowanie
+
+tab - zmiana okna
+
+wybór noda
+
+reczny - enter na adresie serwera
+automatyczny - ctrl + a
